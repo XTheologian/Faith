@@ -59,7 +59,15 @@
 
   .wrap{max-width:1200px; margin:0 auto; padding:0 32px;}
   section{position:relative;}
-
+  /* ---- Torenlijnen die groot over de hele pagina verschijnen tijdens het scrollen ---- */
+  #towerRail{
+    position:absolute; left:0; top:0; width:100%; pointer-events:none; z-index:5;
+  }
+  #towerRailSvg{display:block; width:100%; mix-blend-mode:multiply;}
+  #towerRail .rl{ stroke-dasharray:1; }
+  @media (prefers-reduced-motion: reduce){
+    #towerRail .rl{stroke-dasharray:none; stroke-dashoffset:0 !important;}
+  }
   /* ============ HEADER ============ */
   .topbar{
     background:var(--ink);
