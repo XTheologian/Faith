@@ -762,6 +762,122 @@
   } else {
     revealEls.forEach(el => el.classList.add('in'));
   }
+      revealEls.forEach(el => el.classList.add('in'));
+  }
+
+  /* ---- De hele torenvorm (kruis, dakje, oplopende blokken) uitvergroot over de pagina ---- */
+  (function(){
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const rail = document.getElementById('towerRail');
+    const svg = document.getElementById('towerRailSvg');
+    if(!rail || !svg) return;
+
+    const hero = document.querySelector('.hero');
+    const blockSectionIds = ['pijlers','activiteiten','nieuws','tiles','eenheid','gemeenten','betrokken'];
+    const blockSections = blockSectionIds.map(id => document.getElementById(id)).filter(Boolean);
+    if(!hero || !blockSections.length) return;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const VB_W = 1000;
+    const CENTER = 500;
+    const HALF_WIDTHS = [220, 280, 335, 390, 435, 470, 500]; // per torengeleding, oplopend tot volle breedte
+
+    function makePath(d, w, opacity){
+      const el = document.createElementNS(svgNS,'path');
+      el.setAttribute('d', d);
+      el.setAttribute('class','rl');
+      el.setAttribute('pathLength','1');
+      el.setAttribute('fill','none');
+      el.setAttribute('stroke','#F0B429');
+      el.setAttribute('stroke-width', w);
+      el.setAttribute('stroke-linecap','round');
+      el.setAttribute('stroke-linejoin','round');
+      el.setAttribute('opacity', opacity);
+      return el;
+    }
+
+    let items = [];
+    let docTop = 0, totalHeight = 0;
+
+    function build(){
+      docTop = hero.getBoundingClientRect().bottom + window.scrollY;
+      const lastSection = blockSections[blockSections.length - 1];
+      const docBottom = lastSection.getBoundingClientRect().top + window.scrollY + lastSection.offsetHeight;
+      totalHeight = docBottom - docTop;
+
+      rail.style.top = docTop + 'px';
+      rail.style.height = totalHeight + 'px';
+      svg.setAttribute('viewBox', '0 0 ' + VB_W + ' ' + totalHeight);
+      svg.setAttribute('height', totalHeight);
+      svg.innerHTML = '';
+      items = [];
+
+      const sectionTopsDoc = blockSections.map(s => s.getBoundingClientRect().top + window.scrollY);
+      const sectionTopsLocal = sectionTopsDoc.map(t => t - docTop);
+      const bottomLocal = totalHeight;
+
+      const y1 = sectionTopsLocal[0];
+      const spireL = makePath('M'+CENTER+',0 L'+(CENTER-HALF_WIDTHS[0])+','+y1, 7, 0.3);
+      const spireR = makePath('M'+CENTER+',0 L'+(CENTER+HALF_WIDTHS[0])+','+y1, 7, 0.3);
+      svg.appendChild(spireL); svg.appendChild(spireR);
+      items.push({el:spireL, drawStart: docTop, drawEnd: sectionTopsDoc[0]});
+      items.push({el:spireR, drawStart: docTop, drawEnd: sectionTopsDoc[0]});
+
+      HALF_WIDTHS.forEach((hw, i) => {
+        const yTop = sectionTopsLocal[i];
+        const yBottom = (i < HALF_WIDTHS.length - 1) ? sectionTopsLocal[i+1] : bottomLocal;
+        const yTopDoc = sectionTopsDoc[i];
+        const yBottomDoc = (i < HALF_WIDTHS.length - 1) ? sectionTopsDoc[i+1] : (docTop + bottomLocal);
+
+        const wallL = makePath('M'+(CENTER-hw)+','+yTop+' V'+yBottom, 7, 0.3);
+        const wallR = makePath('M'+(CENTER+hw)+','+yTop+' V'+yBottom, 7, 0.3);
+        svg.appendChild(wallL); svg.appendChild(wallR);
+        items.push({el:wallL, drawStart: yTopDoc - 80, drawEnd: yBottomDoc - 60});
+        items.push({el:wallR, drawStart: yTopDoc - 80, drawEnd: yBottomDoc - 60});
+
+        if(i < HALF_WIDTHS.length - 1){
+          const nextHw = HALF_WIDTHS[i+1];
+          const ledgeL = makePath('M'+(CENTER-hw)+','+yBottom+' L'+(CENTER-nextHw)+','+yBottom, 7, 0.3);
+          const ledgeR = makePath('M'+(CENTER+hw)+','+yBottom+' L'+(CENTER+nextHw)+','+yBottom, 7, 0.3);
+          svg.appendChild(ledgeL); svg.appendChild(ledgeR);
+          items.push({el:ledgeL, drawStart: yBottomDoc - 100, drawEnd: yBottomDoc + 40});
+          items.push({el:ledgeR, drawStart: yBottomDoc - 100, drawEnd: yBottomDoc + 40});
+        }
+      });
+
+      update();
+    }
+
+    function update(){
+      if(reduceMotion){
+        items.forEach(it => it.el.style.strokeDashoffset = '0');
+        return;
+      }
+      const line = window.scrollY + window.innerHeight * 0.8;
+      items.forEach(it => {
+        const range = Math.max(it.drawEnd - it.drawStart, 1);
+        let frac = (line - it.drawStart) / range;
+        frac = Math.max(0, Math.min(1, frac));
+        it.el.style.strokeDashoffset = String(1 - frac);
+      });
+    }
+
+    build();
+
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if(!ticking){
+        window.requestAnimationFrame(() => { update(); ticking = false; });
+        ticking = true;
+      }
+    });
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(build, 300);
+    });
+  })();
 </script>
 
 </body>
