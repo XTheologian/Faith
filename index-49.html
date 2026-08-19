@@ -101,7 +101,43 @@
     display:flex; align-items:center; gap:12px;
     font-family:'Fraunces', serif; font-size:21px; font-weight:600;
   }
-  .brand svg{width:32px; height:32px; flex-shrink:0;}
+    .brand-wide{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; }
+  .aakerk-logo{ width:220px; height:auto; flex-shrink:0; }
+  .brand-wide .sub{
+    display:block; font-family:'IBM Plex Mono', monospace; font-size:10.5px;
+    letter-spacing:0.05em; color:var(--ink-soft); font-weight:400; text-transform:uppercase;
+  }
+
+  /* ---- Logo: Der Aa-kerk-achtige toren met KERKBEHOUD in de gevel, tekent zichzelf ---- */
+  .aakerk-logo .dl{ stroke-dasharray:1; stroke-dashoffset:1; animation: dlDraw .45s ease forwards; }
+  .aakerk-logo .base{ animation-delay: 0s; }
+  .aakerk-logo .tleft{ animation-delay: .12s; }
+  .aakerk-logo .tledge{ animation-delay: .22s; }
+  .aakerk-logo .mwalls{ animation-delay: .3s; }
+  .aakerk-logo .mledge{ animation-delay: .38s; }
+  .aakerk-logo .bwalls, .aakerk-logo .balu{ animation-delay: .46s; }
+  .aakerk-logo .spire{ animation-delay: .54s; }
+  .aakerk-logo .crossv{ animation-delay: .66s; }
+  .aakerk-logo .crossh{ animation-delay: .76s; }
+  .aakerk-logo .roof{ animation-delay: .3s; }
+  .aakerk-logo .wall{ animation-delay: .4s; }
+  .aakerk-logo .but{ animation-delay: .5s; }
+  .aakerk-logo .win{ animation-delay: .6s; }
+  @keyframes dlDraw{ to{ stroke-dashoffset:0; } }
+
+  .aakerk-logo .word{
+    opacity:0; transform:translateY(5px); transform-origin:left;
+    animation: wordIn .65s cubic-bezier(.2,.8,.2,1) .95s forwards;
+  }
+  @keyframes wordIn{ to{ opacity:1; transform:translateY(0); } }
+
+  @media (prefers-reduced-motion: reduce){
+    .aakerk-logo .dl{ animation:none; stroke-dashoffset:0; }
+    .aakerk-logo .word{ animation:none; opacity:1; transform:none; }
+  }
+  @media (max-width: 640px){
+    .aakerk-logo{ width:170px; }
+  }
   .brand .sub{
     display:block; font-family:'IBM Plex Mono', monospace;
     font-size:9.5px; letter-spacing:0.08em; text-transform:uppercase;
